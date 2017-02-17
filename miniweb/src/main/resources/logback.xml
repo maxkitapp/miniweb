@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<!-- Appenders http://logback.qos.ch/manual/appenders.html -->
+	<appender name="CONSOLE"
+		class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<Pattern>%d [%thread] %-5p %c %L%n %m%n</Pattern>
+		</encoder>
+	</appender>
+	
+	<root>
+		<level value="DEBUG" />
+		<appender-ref ref="CONSOLE" />
+	</root>	
+</configuration>

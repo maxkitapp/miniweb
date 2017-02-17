@@ -1,0 +1,7 @@
+/target
+/Users
+/.classpath
+/.settings
+/.project
+.DS_Store
+**/*.graffle
