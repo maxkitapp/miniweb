@@ -38,13 +38,14 @@ public class WeatherBusiness extends CommonBusiness {
 	private final String IMG_NAME = "cwbSatellite.jpg";
 	private final int IMG_SIZE = 300;
 	private final String API_GETWEATHER_URL = "http://localhost:8080/ivrdatasource/cwb/getWeather";
-	
+	private final String HELPER_WEBVIEW_URL = "http://maxkit.com.tw:8008/miniweb/helper/";
+
 	public ApiOut requestHandler(ApiIn apiIn) {
 		String pagename = apiIn.getPagename();
 		logger.debug("into requestHandler, pathname = {}", pagename);
-		
+
 		ApiOut apiOut = new ApiOut();
-		
+
 		switch (pagename) {
 		case "home":
 			apiOut = homeHandler(apiIn, apiOut);
@@ -61,19 +62,26 @@ public class WeatherBusiness extends CommonBusiness {
 			apiOut = listEntertainmentHandler(apiIn, apiOut);
 			break;
 		case "queryEntertainment":
-			apiOut = queryEntertainmentHandler(apiIn, apiOut, pagename);
+			apiOut = queryEntertainmentHandler(apiIn, apiOut);
+			break;
+		case "helper":
+			apiOut = helperHandler(apiIn, apiOut);
+			break;
+		case "helperdetail":
+			apiOut = helperdetailHandler(apiIn, apiOut);
 			break;
 		default:
 			logger.debug("unknow pagename {}", pagename);
 			apiOut = defaultHandler(apiIn, apiOut);
 			break;
 		}
-		
+
 		return apiOut;
 	}
+
 	private ApiOut listEntertainmentHandler(ApiIn apiIn, ApiOut apiOut) {
 		List<Body> bodys = DataUtils.generateEntertainmentBodys();
-		
+
 		apiOut.setRcode("200");
 		apiOut.setRdesc("ok");
 		apiOut.setPagename("listEntertainment");
@@ -82,21 +90,21 @@ public class WeatherBusiness extends CommonBusiness {
 		apiOut.setBody(bodys);
 		return apiOut;
 	}
-	
-	private ApiOut queryEntertainmentHandler(ApiIn apiIn, ApiOut apiOut, String pagename) {
+
+	private ApiOut queryEntertainmentHandler(ApiIn apiIn, ApiOut apiOut) {
 		Postdata postdata = apiIn.getPostdata().get(0);
 		String postId = postdata.getId(); // eid
 		String postValue = postdata.getValue();
-		
+
 		logger.debug("getpost, postId = {}, postValue = {}", postId, postValue);
-		
+
 		String bodyurl = "";
-		
+
 		switch (postValue) {
 		case "fishing":
 			bodyurl = "http://www.cwb.gov.tw/m/f/entertainment/B011.php";
 			break;
-		case  "biking" :
+		case "biking":
 			bodyurl = "http://www.cwb.gov.tw/m/f/entertainment/C047.php";
 			break;
 		case "stargazing":
@@ -111,52 +119,69 @@ public class WeatherBusiness extends CommonBusiness {
 		default:
 			break;
 		}
-		
+
 		apiOut.setRcode("200");
 		apiOut.setRdesc("ok");
-		apiOut.setPagename(pagename);
+		apiOut.setPagename(apiIn.getPagename());
 		apiOut.setBodyurl(bodyurl);
 		apiOut.setReturnpage("listEntertainment");
-		
+
 		return apiOut;
 	}
-	
+
 	private ApiOut homeHandler(ApiIn apiIn, ApiOut apiOut) {
-		Body body = new Body();
-		body.setType("span");
-		body.setValue("Welcome to Weather App");
+		String imgdata = "";
+		try {
+			imgdata = DataUtils.getHomepic64img(context, "weather");
+		} catch (Exception e) {
+			logger.error("Exception:", e);
+		}
+		
+		Body bodyImg = new Body();
+		bodyImg.setType("img");
+		bodyImg.setImgid("homepic");
+		
+		Body bodyDesc = new Body();
+		bodyDesc.setType("span");
+		bodyDesc.setValue("透過天氣小程式，可以查詢各大都市的天氣預報、育樂天氣、與衛星雲圖等天氣資訊。");
+
+		Imgbody imgbody = new Imgbody();
+		imgbody.setImgid("homepic");
+		imgbody.setImgdata(imgdata);
 		
 		apiOut.setRcode("200");
 		apiOut.setRdesc("ok");
 		apiOut.setPagename("home");
-		apiOut.setBody(Arrays.asList(body));
-		
+		apiOut.setBody(Arrays.asList(bodyImg, bodyDesc));
+		apiOut.setImgbody(Arrays.asList(imgbody));
+
 		return apiOut;
 	}
-	
+
 	private ApiOut defaultHandler(ApiIn apiIn, ApiOut apiOut) {
 		apiOut.setRcode("404");
 		apiOut.setRdesc("Pagename " + apiIn.getPagename() + " not found");
 		return apiOut;
 	}
-	
+
 	private ApiOut getWeatherHandler(ApiIn apiIn, ApiOut apiOut, String pagename) {
 		// query cwb raw data
 		RestTemplate restTemplate = new RestTemplate();
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-		MultiValueMap<String, String> map= new LinkedMultiValueMap<>();
+		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
 		map.add("area", pagename);
 
 		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
 
-		ResponseEntity<CwbDataStore> response = restTemplate.postForEntity(API_GETWEATHER_URL, request , CwbDataStore.class );
+		ResponseEntity<CwbDataStore> response = restTemplate.postForEntity(API_GETWEATHER_URL, request,
+				CwbDataStore.class);
 		CwbDataStore cwbDataStore = response.getBody();
-		
+
 		// convert cwb raw data to response format
-		List<Body> bodys= DataUtils.cwbStoreToBody(cwbDataStore, pagename);
-		
+		List<Body> bodys = DataUtils.cwbStoreToBody(cwbDataStore, pagename);
+
 		apiOut.setRcode("200");
 		apiOut.setRdesc("ok");
 		apiOut.setPagename(pagename);
@@ -165,19 +190,71 @@ public class WeatherBusiness extends CommonBusiness {
 		apiOut.setCanforward(true);
 		return apiOut;
 	}
-	
+
+	private ApiOut helperHandler(ApiIn apiIn, ApiOut apiOut) {
+		List<Body> bodys = DataUtils.generateHelperBodys();
+
+		apiOut.setRcode("200");
+		apiOut.setRdesc("ok");
+		apiOut.setPagename("helper");
+		apiOut.setReturnpage("home");
+		apiOut.setBody(bodys);
+		return apiOut;
+	}
+
+	private ApiOut helperdetailHandler(ApiIn apiIn, ApiOut apiOut) {
+		Postdata postdata = apiIn.getPostdata().get(0);
+		String postId = postdata.getId(); // item
+		String postValue = postdata.getValue();
+
+		logger.debug("getpost, postId = {}, postValue = {}", postId, postValue);
+
+		String bodyurl = "";
+
+		switch (postValue) {
+		case "text":
+			bodyurl = HELPER_WEBVIEW_URL + "text.html";
+			break;
+		case "textarea":
+			bodyurl = HELPER_WEBVIEW_URL + "textarea.html";
+			break;
+		case "option":
+			bodyurl = HELPER_WEBVIEW_URL + "option.html";
+			break;
+		case "checkbox":
+			bodyurl = HELPER_WEBVIEW_URL + "checkbox.html";
+			break;
+		case "span":
+			bodyurl = HELPER_WEBVIEW_URL + "span.html";
+			break;
+		case "img":
+			bodyurl = HELPER_WEBVIEW_URL + "img.html";
+			break;
+		default:
+			break;
+		}
+
+		apiOut.setRcode("200");
+		apiOut.setRdesc("ok");
+		apiOut.setPagename(apiIn.getPagename());
+		apiOut.setBodyurl(bodyurl);
+		apiOut.setReturnpage("helper");
+
+		return apiOut;
+	}
+
 	private ApiOut satelliteHandler(ApiIn apiIn, ApiOut apiOut) {
 		String imgbase64 = getSatelliteBase64img();
 		String imgid = "satellite";
-		
+
 		Body body = new Body();
 		body.setType("img");
 		body.setImgid(imgid);
-		
+
 		Imgbody imgbody = new Imgbody();
 		imgbody.setImgid(imgid);
 		imgbody.setImgdata(imgbase64);
-		
+
 		apiOut.setRcode("200");
 		apiOut.setRdesc("ok");
 		apiOut.setPagename("satellite");
@@ -187,32 +264,36 @@ public class WeatherBusiness extends CommonBusiness {
 		apiOut.setCanforward(true);
 		return apiOut;
 	}
-	
+
 	private String getSatelliteBase64img() {
 		// force mkdir
 		String[] paths = forceCreateFolder();
-		
-		String picSrcFilePath = paths[0];  // ex: /Users/mayer/Documents/workspace46/.metadata/.plugins/org.eclipse.wst.server.core/tmp0/wtpwebapps/miniweb/WEB-INF/ivrpic/cwbSatellite.jpg
-		String picThumbFilePath = paths[1];  // ex: /Users/mayer/Documents/workspace46/.metadata/.plugins/org.eclipse.wst.server.core/tmp0/wtpwebapps/miniweb/WEB-INF/ivrpicthumb/cwbSatellite.jpg
-		
+
+		String picSrcFilePath = paths[0]; // ex:
+											// /Users/mayer/Documents/workspace46/.metadata/.plugins/org.eclipse.wst.server.core/tmp0/wtpwebapps/miniweb/WEB-INF/ivrpic/cwbSatellite.jpg
+		String picThumbFilePath = paths[1]; // ex:
+											// /Users/mayer/Documents/workspace46/.metadata/.plugins/org.eclipse.wst.server.core/tmp0/wtpwebapps/miniweb/WEB-INF/ivrpicthumb/cwbSatellite.jpg
+
 		// query raw satellite image
 		Calendar cal = Calendar.getInstance();
-    	cal.add(Calendar.HOUR, -1);
-    	cal.clear(Calendar.MINUTE);
-    	
-    	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH-mm");
-    	String dateStr = sdf.format(cal.getTime()); // 2017-01-13-17-00 or 2017-01-12-02-00
-    	
-    	StringBuilder url = new StringBuilder();
-    	url.append("http://www.cwb.gov.tw/V7/observe/satellite/Data/s1p/s1p-").append(dateStr).append(".jpg");
-		
-    	RestTemplate restTemplate = new RestTemplate();
-    	restTemplate.getMessageConverters().add(new ByteArrayHttpMessageConverter());
-    	byte[] imageBytes = restTemplate.getForObject(url.toString(), byte[].class);
-    	
-    	// raw image resize to thumbnail and encode the thumbnail to base64 string
-    	String imgBase64 = "";
-    	try {
+		cal.add(Calendar.HOUR, -1);
+		cal.clear(Calendar.MINUTE);
+
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH-mm");
+		String dateStr = sdf.format(cal.getTime()); // 2017-01-13-17-00 or
+													// 2017-01-12-02-00
+
+		StringBuilder url = new StringBuilder();
+		url.append("http://www.cwb.gov.tw/V7/observe/satellite/Data/s1p/s1p-").append(dateStr).append(".jpg");
+
+		RestTemplate restTemplate = new RestTemplate();
+		restTemplate.getMessageConverters().add(new ByteArrayHttpMessageConverter());
+		byte[] imageBytes = restTemplate.getForObject(url.toString(), byte[].class);
+
+		// raw image resize to thumbnail and encode the thumbnail to base64
+		// string
+		String imgBase64 = "";
+		try {
 			Files.write(Paths.get(picSrcFilePath), imageBytes);
 			Thumbnails.of(picSrcFilePath).size(IMG_SIZE, IMG_SIZE).toFile(picThumbFilePath);
 			byte[] thumb = Files.readAllBytes(Paths.get(picThumbFilePath));
@@ -220,31 +301,35 @@ public class WeatherBusiness extends CommonBusiness {
 		} catch (IOException e) {
 			logger.error("Exception:", e);
 		}
-		
+
 		return imgBase64;
 	}
-	
+
 	private String[] forceCreateFolder() {
-		String[] paths = {"", ""};
+		String[] paths = { "", "" };
 		try {
-			StringBuilder sb_pictoot = new StringBuilder();
-			sb_pictoot.append(File.separator).append("WEB-INF");
-			String picRootPath = context.getRealPath(sb_pictoot.toString());
-			
-			String picSrcPath = new StringBuilder().append(picRootPath).append(File.separator).append(IMG_SRC_FOLDER_NAME).toString();
+			StringBuilder sb_picroot = new StringBuilder();
+			sb_picroot.append(File.separator).append("WEB-INF");
+			String picRootPath = context.getRealPath(sb_picroot.toString());
+
+			String picSrcPath = new StringBuilder().append(picRootPath).append(File.separator)
+					.append(IMG_SRC_FOLDER_NAME).toString();
 			File fileSrc = new File(picSrcPath);
 			FileUtils.forceMkdir(fileSrc);
-			
-			String picThumbPath = new StringBuilder().append(picRootPath).append(File.separator).append(IMG_THUMB_FOLDER_NAME).toString();
+
+			String picThumbPath = new StringBuilder().append(picRootPath).append(File.separator)
+					.append(IMG_THUMB_FOLDER_NAME).toString();
 			File fileThumb = new File(picThumbPath);
 			FileUtils.forceMkdir(fileThumb);
-			
-			String picSrcFilePath = new StringBuilder().append(picSrcPath).append(File.separator).append(IMG_NAME).toString();
-			String picThumbFilePath = new StringBuilder().append(picThumbPath).append(File.separator).append(IMG_NAME).toString();
-			
+
+			String picSrcFilePath = new StringBuilder().append(picSrcPath).append(File.separator).append(IMG_NAME)
+					.toString();
+			String picThumbFilePath = new StringBuilder().append(picThumbPath).append(File.separator).append(IMG_NAME)
+					.toString();
+
 			paths[0] = picSrcFilePath;
 			paths[1] = picThumbFilePath;
-			
+
 		} catch (Exception e) {
 			logger.error("Error:", e);
 		}

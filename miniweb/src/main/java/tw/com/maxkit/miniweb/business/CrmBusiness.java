@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import tw.com.maxkit.miniweb.bean.ApiIn;
 import tw.com.maxkit.miniweb.bean.ApiOut;
 import tw.com.maxkit.miniweb.bean.Body;
+import tw.com.maxkit.miniweb.bean.Imgbody;
 import tw.com.maxkit.miniweb.bean.Postdata;
 import tw.com.maxkit.miniweb.bean.crm.Contact;
 import tw.com.maxkit.miniweb.common.CommonBusiness;
@@ -69,14 +70,30 @@ public class CrmBusiness extends CommonBusiness {
 	}
 
 	private ApiOut homeHandler(ApiIn apiIn, ApiOut apiOut) {
-		Body body = new Body();
-		body.setType("span");
-		body.setValue("Welcome to Crm App");
+		String imgdata = "";
+		try {
+			imgdata = DataUtils.getHomepic64img(context, "crm");
+		} catch (Exception e) {
+			logger.error("Exception:", e);
+		}
+		
+		Body bodyImg = new Body();
+		bodyImg.setType("img");
+		bodyImg.setImgid("homepic");
+		
+		Body bodyDesc = new Body();
+		bodyDesc.setType("span");
+		bodyDesc.setValue("透過 CRM 小程式，可以使用客戶姓名或公司名稱搜尋相關客戶資訊。");
 
+		Imgbody imgbody = new Imgbody();
+		imgbody.setImgid("homepic");
+		imgbody.setImgdata(imgdata);
+		
 		apiOut.setRcode("200");
 		apiOut.setRdesc("ok");
 		apiOut.setPagename("home");
-		apiOut.setBody(Arrays.asList(body));
+		apiOut.setBody(Arrays.asList(bodyImg, bodyDesc));
+		apiOut.setImgbody(Arrays.asList(imgbody));
 
 		return apiOut;
 	}
