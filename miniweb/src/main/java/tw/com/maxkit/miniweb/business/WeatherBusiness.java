@@ -162,6 +162,7 @@ public class WeatherBusiness extends CommonBusiness {
 		apiOut.setPagename(pagename);
 		apiOut.setReturnpage("home");
 		apiOut.setBody(bodys);
+		apiOut.setCanforward(true);
 		return apiOut;
 	}
 	
@@ -183,6 +184,7 @@ public class WeatherBusiness extends CommonBusiness {
 		apiOut.setReturnpage("home");
 		apiOut.setBody(Arrays.asList(body));
 		apiOut.setImgbody(Arrays.asList(imgbody));
+		apiOut.setCanforward(true);
 		return apiOut;
 	}
 	
@@ -190,8 +192,8 @@ public class WeatherBusiness extends CommonBusiness {
 		// force mkdir
 		String[] paths = forceCreateFolder();
 		
-		String picSrcFilePath = paths[0];  // ex: /Users/mayer/Documents/workspace46/.metadata/.plugins/org.eclipse.wst.server.core/tmp0/wtpwebapps/ivrsample/WEB-INF/ivrpic/cwbSatellite.jpg
-		String picThumbFilePath = paths[1];  // ex: /Users/mayer/Documents/workspace46/.metadata/.plugins/org.eclipse.wst.server.core/tmp0/wtpwebapps/ivrsample/WEB-INF/ivrpicthumb/cwbSatellite.jpg
+		String picSrcFilePath = paths[0];  // ex: /Users/mayer/Documents/workspace46/.metadata/.plugins/org.eclipse.wst.server.core/tmp0/wtpwebapps/miniweb/WEB-INF/ivrpic/cwbSatellite.jpg
+		String picThumbFilePath = paths[1];  // ex: /Users/mayer/Documents/workspace46/.metadata/.plugins/org.eclipse.wst.server.core/tmp0/wtpwebapps/miniweb/WEB-INF/ivrpicthumb/cwbSatellite.jpg
 		
 		// query raw satellite image
 		Calendar cal = Calendar.getInstance();
