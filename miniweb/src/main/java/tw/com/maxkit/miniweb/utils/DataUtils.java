@@ -173,7 +173,7 @@ public class DataUtils {
 		optionBiking.setOptvalue("biking");
 		optionBiking.setOptimgid("biking");
 		Imgbody imgBiking = new Imgbody();
-		imgBiking.setImgid("fishing");
+		imgBiking.setImgid("biking");
 		imgBiking.setImgdata(getPics64img(context, "weather_btn_icon2"));
 
 		Option optionStargazing = new Option();
@@ -181,7 +181,7 @@ public class DataUtils {
 		optionStargazing.setOptvalue("stargazing");
 		optionStargazing.setOptimgid("stargazing");
 		Imgbody imgStargazing = new Imgbody();
-		imgStargazing.setImgid("fishing");
+		imgStargazing.setImgid("stargazing");
 		imgStargazing.setImgdata(getPics64img(context, "weather_btn_icon3"));
 
 		Option optionHiking = new Option();
@@ -189,7 +189,7 @@ public class DataUtils {
 		optionHiking.setOptvalue("hiking");
 		optionHiking.setOptimgid("hiking");
 		Imgbody imgHiking = new Imgbody();
-		imgHiking.setImgid("fishing");
+		imgHiking.setImgid("hiking");
 		imgHiking.setImgdata(getPics64img(context, "weather_btn_icon4"));
 
 		Option optionTraveling = new Option();
@@ -197,7 +197,7 @@ public class DataUtils {
 		optionTraveling.setOptvalue("traveling");
 		optionTraveling.setOptimgid("traveling");
 		Imgbody imgTraveling = new Imgbody();
-		imgTraveling.setImgid("fishing");
+		imgTraveling.setImgid("traveling");
 		imgTraveling.setImgdata(getPics64img(context, "weather_btn_icon5"));
 
 		Collections.addAll(options, optionFishing, optionBiking, optionStargazing, optionHiking, optionTraveling);
