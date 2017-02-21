@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
@@ -13,7 +14,9 @@ import javax.servlet.ServletContext;
 
 import org.springframework.util.StringUtils;
 
+import tw.com.maxkit.miniweb.bean.ApiOut;
 import tw.com.maxkit.miniweb.bean.Body;
+import tw.com.maxkit.miniweb.bean.Imgbody;
 import tw.com.maxkit.miniweb.bean.Option;
 import tw.com.maxkit.miniweb.bean.crm.Contact;
 import tw.com.maxkit.miniweb.bean.cwb.CwbDataStore;
@@ -145,8 +148,10 @@ public class DataUtils {
 		return bodys;
 	}
 
-	public static List<Body> generateEntertainmentBodys() {
+	public static ApiOut setEntertainmentBodys(ServletContext context, ApiOut apiOut) throws IOException {
 		List<Body> bodys = new ArrayList<>();
+		List<Imgbody> imgbodys = new ArrayList<>();
+
 		Body body = new Body();
 		body.setId("eid");
 		body.setValue("請選擇育樂氣象：");
@@ -158,35 +163,60 @@ public class DataUtils {
 		Option optionFishing = new Option();
 		optionFishing.setOptname("海釣");
 		optionFishing.setOptvalue("fishing");
+		optionFishing.setOptimgid("fishing");
+		Imgbody imgFishing = new Imgbody();
+		imgFishing.setImgid("fishing");
+		imgFishing.setImgdata(getPics64img(context, "weather_btn_icon1"));
 
 		Option optionBiking = new Option();
 		optionBiking.setOptname("單車");
 		optionBiking.setOptvalue("biking");
+		optionBiking.setOptimgid("biking");
+		Imgbody imgBiking = new Imgbody();
+		imgBiking.setImgid("fishing");
+		imgBiking.setImgdata(getPics64img(context, "weather_btn_icon2"));
 
 		Option optionStargazing = new Option();
 		optionStargazing.setOptname("觀星");
 		optionStargazing.setOptvalue("stargazing");
+		optionStargazing.setOptimgid("stargazing");
+		Imgbody imgStargazing = new Imgbody();
+		imgStargazing.setImgid("fishing");
+		imgStargazing.setImgdata(getPics64img(context, "weather_btn_icon3"));
 
 		Option optionHiking = new Option();
 		optionHiking.setOptname("登山");
 		optionHiking.setOptvalue("hiking");
+		optionHiking.setOptimgid("hiking");
+		Imgbody imgHiking = new Imgbody();
+		imgHiking.setImgid("fishing");
+		imgHiking.setImgdata(getPics64img(context, "weather_btn_icon4"));
 
 		Option optionTraveling = new Option();
 		optionTraveling.setOptname("旅遊");
 		optionTraveling.setOptvalue("traveling");
+		optionTraveling.setOptimgid("traveling");
+		Imgbody imgTraveling = new Imgbody();
+		imgTraveling.setImgid("fishing");
+		imgTraveling.setImgdata(getPics64img(context, "weather_btn_icon5"));
 
 		Collections.addAll(options, optionFishing, optionBiking, optionStargazing, optionHiking, optionTraveling);
 
 		body.setOptionlist(options);
 		bodys.add(body);
-		return bodys;
+
+		apiOut.setBody(bodys);
+
+		Collections.addAll(imgbodys, imgFishing, imgBiking, imgStargazing, imgHiking, imgTraveling);
+		apiOut.setImgbody(imgbodys);
+		return apiOut;
 	}
 
 	public static List<Body> generateHelperBodys() {
 		List<Body> bodys = new ArrayList<>();
 		Body body = new Body();
 		body.setId("item");
-		body.setValue("請項目：");
+		body.setValue("請選擇項目：");
 		body.setType("option");
 		body.setSize(18);
 
@@ -223,11 +253,206 @@ public class DataUtils {
 		return bodys;
 	}
 
+	public static ApiOut setTextBodys(ApiOut apiOut) {
+		List<Body> bodys = new ArrayList<>();
+		Body any = new Body();
+		any.setType("text");
+		any.setValue("Text, Keyboard = any");
+		any.setKeyboard("any");
+
+		Body en = new Body();
+		en.setType("text");
+		en.setValue("Text, Keyboard = en");
+		en.setKeyboard("en");
+
+		Body digit = new Body();
+		digit.setType("text");
+		digit.setValue("Text, Keyboard = digit");
+		digit.setKeyboard("digit");
+
+		Body en_digit = new Body();
+		en_digit.setType("text");
+		en_digit.setValue("Text, Keyboard = en_digit");
+		en_digit.setKeyboard("en_digit");
+
+		Body email = new Body();
+		email.setType("text");
+		email.setValue("Text, Keyboard = email");
+		email.setKeyboard("email");
+
+		Body date = new Body();
+		date.setType("text");
+		date.setValue("Text, Keyboard = date");
+		date.setKeyboard("date");
+
+		Body time = new Body();
+		time.setType("text");
+		time.setValue("Text, Keyboard = time");
+		time.setKeyboard("time");
+
+		Body datetime = new Body();
+		datetime.setType("text");
+		datetime.setValue("Text, Keyboard = datetime");
+		datetime.setKeyboard("datetime");
+
+		Collections.addAll(bodys, any, en, digit, en_digit, email, date, time, datetime);
+		apiOut.setBody(bodys);
+		return apiOut;
+	}
+
+	public static ApiOut setTextareaBodys(ApiOut apiOut) {
+		List<Body> bodys = new ArrayList<>();
+		Body bodyTextarea = new Body();
+		bodyTextarea.setType("textarea");
+		bodyTextarea.setValue("Textarea, Keyboard = any");
+		bodyTextarea.setKeyboard("any");
+
+		Collections.addAll(bodys, bodyTextarea);
+		apiOut.setBody(bodys);
+		return apiOut;
+	}
+
+	public static ApiOut setOptionBodys(ServletContext context, ApiOut apiOut) throws Exception {
+		List<Body> bodys = new ArrayList<>();
+
+		Body body1 = new Body();
+		body1.setId("optionid1");
+		body1.setValue("請選擇選項：");
+		body1.setType("option");
+		body1.setSize(18);
+
+		List<Option> options = new ArrayList<>();
+		Option option1 = new Option();
+		option1.setOptname("選項一");
+		option1.setOptvalue("o1");
+		Option option2 = new Option();
+		option2.setOptname("選項二");
+		option2.setOptvalue("o2");
+		Collections.addAll(options, option1, option2);
+		body1.setOptionlist(options);
+
+		Body body2 = new Body();
+		body2.setId("optionid2");
+		body2.setValue("請選擇選項(有圖片)：");
+		body2.setType("option");
+		body2.setSize(18);
+		List<Option> options1 = new ArrayList<>();
+		Option option3 = new Option();
+		option3.setOptname("選項三");
+		option3.setOptvalue("o3");
+		option3.setOptimgid("o3");
+		Option option4 = new Option();
+		option4.setOptname("選項四");
+		option4.setOptvalue("o4");
+		option4.setOptimgid("o4");
+		Collections.addAll(options1, option3, option4);
+		body2.setOptionlist(options1);
+
+		Imgbody imgbody1 = new Imgbody();
+		imgbody1.setImgid("o3");
+		imgbody1.setImgdata(getPics64img(context, "option_icon1"));
+
+		Imgbody imgbody2 = new Imgbody();
+		imgbody2.setImgid("o4");
+		imgbody2.setImgdata(getPics64img(context, "option_icon2"));
+
+		apiOut.setImgbody(Arrays.asList(imgbody1, imgbody2));
+
+		Collections.addAll(bodys, body1, body2);
+
+		apiOut.setBody(bodys);
+		return apiOut;
+	}
+
+	public static ApiOut setCheckboxBodys(ServletContext context, ApiOut apiOut) throws Exception {
+		List<Body> bodys = new ArrayList<>();
+
+		Body body1 = new Body();
+		body1.setId("checkid");
+		body1.setValue("請勾選選項：");
+		body1.setType("checkbox");
+		body1.setSize(18);
+		List<Option> options1 = new ArrayList<>();
+		Option option1 = new Option();
+		option1.setOptname("選項一");
+		option1.setOptvalue("c1");
+		Option option2 = new Option();
+		option2.setOptname("選項二");
+		option2.setOptvalue("c2");
+		Collections.addAll(options1, option1, option2);
+		body1.setOptionlist(options1);
+
+		Body body2 = new Body();
+		body2.setId("checkid");
+		body2.setValue("請勾選選項(有圖片)：");
+		body2.setType("checkbox");
+		body2.setSize(18);
+		List<Option> options2 = new ArrayList<>();
+		Option option3 = new Option();
+		option3.setOptname("選項三");
+		option3.setOptvalue("c3");
+		option3.setOptimgid("c3");
+		Option option4 = new Option();
+		option4.setOptname("選項四");
+		option4.setOptvalue("c4");
+		option4.setOptimgid("c4");
+		Collections.addAll(options2, option3, option4);
+		body2.setOptionlist(options2);
+
+		Imgbody imgbody1 = new Imgbody();
+		imgbody1.setImgid("c3");
+		imgbody1.setImgdata(getPics64img(context, "option_icon1"));
+
+		Imgbody imgbody2 = new Imgbody();
+		imgbody2.setImgid("c4");
+		imgbody2.setImgdata(getPics64img(context, "option_icon2"));
+
+		apiOut.setImgbody(Arrays.asList(imgbody1, imgbody2));
+
+		Collections.addAll(bodys, body1, body2);
+		apiOut.setBody(bodys);
+		return apiOut;
+	}
+
+	public static ApiOut setSpanBodys(ApiOut apiOut) {
+		List<Body> bodys = new ArrayList<>();
+
+		Body body1 = new Body();
+		body1.setType("span");
+		body1.setValue("span");
+
+		Body body2 = new Body();
+		body2.setType("span");
+		body2.setColor("#D1690E");
+		body2.setSize(24);
+		body2.setBgcolor("#E6E6FA");
+
+		Collections.addAll(bodys, body1, body2);
+		apiOut.setBody(bodys);
+		return apiOut;
+	}
+
+	public static ApiOut setImgBodys(ServletContext context, ApiOut apiOut) throws IOException {
+		String imgdata = DataUtils.getPics64img(context, "crm");
+
+		Body bodyImg = new Body();
+		bodyImg.setType("img");
+		bodyImg.setImgid("homepic");
+
+		Imgbody imgbody = new Imgbody();
+		imgbody.setImgid("homepic");
+		imgbody.setImgdata(imgdata);
+
+		apiOut.setBody(Arrays.asList(bodyImg));
+		apiOut.setImgbody(Arrays.asList(imgbody));
+		return apiOut;
+	}
+
 	// appname = crm or weather
-	public static String getHomepic64img(ServletContext context, String appname) throws IOException{
+	public static String getPics64img(ServletContext context, String picname) throws IOException {
 		StringBuilder sb_pic = new StringBuilder();
 		sb_pic.append(File.separator).append("WEB-INF").append(File.separator).append("homepic").append(File.separator)
-				.append(appname).append(".png");
+				.append(picname).append(".png");
 		String picPath = context.getRealPath(sb_pic.toString());
 
 		String imgBase64 = "";

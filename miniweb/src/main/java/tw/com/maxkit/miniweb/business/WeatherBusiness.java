@@ -38,7 +38,6 @@ public class WeatherBusiness extends CommonBusiness {
 	private final String IMG_NAME = "cwbSatellite.jpg";
 	private final int IMG_SIZE = 800;
 	private final String API_GETWEATHER_URL = "http://localhost:8080/ivrdatasource/cwb/getWeather";
-	private final String HELPER_WEBVIEW_URL = "http://maxkit.com.tw:8008/miniweb/helper/";
 
 	public ApiOut requestHandler(ApiIn apiIn) {
 		String pagename = apiIn.getPagename();
@@ -80,14 +79,20 @@ public class WeatherBusiness extends CommonBusiness {
 	}
 
 	private ApiOut listEntertainmentHandler(ApiIn apiIn, ApiOut apiOut) {
-		List<Body> bodys = DataUtils.generateEntertainmentBodys();
+		try {
+			apiOut = DataUtils.setEntertainmentBodys(context, apiOut);
+			apiOut.setRcode("200");
+			apiOut.setRdesc("ok");
+		} catch (IOException e) {
+			logger.error("Exception:", e);
 
-		apiOut.setRcode("200");
-		apiOut.setRdesc("ok");
+			apiOut.setRcode("500");
+			apiOut.setRdesc("IOException");
+		}
+
 		apiOut.setPagename("listEntertainment");
 		apiOut.setReturnpage("home");
 		apiOut.setAction("queryEntertainment");
-		apiOut.setBody(bodys);
 		return apiOut;
 	}
 
@@ -132,28 +137,31 @@ public class WeatherBusiness extends CommonBusiness {
 	private ApiOut homeHandler(ApiIn apiIn, ApiOut apiOut) {
 		String imgdata = "";
 		try {
-			imgdata = DataUtils.getHomepic64img(context, "weather");
+			imgdata = DataUtils.getPics64img(context, "weather_home");
+			Body bodyImg = new Body();
+			bodyImg.setType("img");
+			bodyImg.setImgid("homepic");
+
+			Body bodyDesc = new Body();
+			bodyDesc.setType("span");
+			bodyDesc.setValue("透過天氣小程式，可以查詢各大都市的天氣預報、育樂天氣、與衛星雲圖等天氣資訊。");
+
+			Imgbody imgbody = new Imgbody();
+			imgbody.setImgid("homepic");
+			imgbody.setImgdata(imgdata);
+
+			apiOut.setBody(Arrays.asList(bodyImg, bodyDesc));
+			apiOut.setImgbody(Arrays.asList(imgbody));
+
+			apiOut.setRcode("200");
+			apiOut.setRdesc("ok");
 		} catch (Exception e) {
 			logger.error("Exception:", e);
+			apiOut.setRcode("500");
+			apiOut.setRdesc("Exception");
 		}
-		
-		Body bodyImg = new Body();
-		bodyImg.setType("img");
-		bodyImg.setImgid("homepic");
-		
-		Body bodyDesc = new Body();
-		bodyDesc.setType("span");
-		bodyDesc.setValue("透過天氣小程式，可以查詢各大都市的天氣預報、育樂天氣、與衛星雲圖等天氣資訊。");
 
-		Imgbody imgbody = new Imgbody();
-		imgbody.setImgid("homepic");
-		imgbody.setImgdata(imgdata);
-		
-		apiOut.setRcode("200");
-		apiOut.setRdesc("ok");
 		apiOut.setPagename("home");
-		apiOut.setBody(Arrays.asList(bodyImg, bodyDesc));
-		apiOut.setImgbody(Arrays.asList(imgbody));
 
 		return apiOut;
 	}
@@ -203,43 +211,59 @@ public class WeatherBusiness extends CommonBusiness {
 	}
 
 	private ApiOut helperdetailHandler(ApiIn apiIn, ApiOut apiOut) {
-		// TODO helper implement
 		Postdata postdata = apiIn.getPostdata().get(0);
 		String postId = postdata.getId(); // item
 		String postValue = postdata.getValue();
 
 		logger.debug("getpost, postId = {}, postValue = {}", postId, postValue);
 
-		String bodyurl = "";
+		apiOut.setRcode("200");
+		apiOut.setRdesc("ok");
+		apiOut.setPagename(apiIn.getPagename());
+		apiOut.setReturnpage("helper");
 
 		switch (postValue) {
 		case "text":
-			bodyurl = HELPER_WEBVIEW_URL + "text.html";
+			apiOut = DataUtils.setTextBodys(apiOut);
 			break;
 		case "textarea":
-			bodyurl = HELPER_WEBVIEW_URL + "textarea.html";
+			apiOut = DataUtils.setTextareaBodys(apiOut);
 			break;
 		case "option":
-			bodyurl = HELPER_WEBVIEW_URL + "option.html";
+			try {
+				apiOut = DataUtils.setOptionBodys(context, apiOut);
+			} catch (Exception e) {
+				logger.error("Error:", e);
+
+				apiOut.setRcode("500");
+				apiOut.setRdesc("Exception");
+			}
+
 			break;
 		case "checkbox":
-			bodyurl = HELPER_WEBVIEW_URL + "checkbox.html";
+			try {
+				apiOut = DataUtils.setCheckboxBodys(context, apiOut);
+			} catch (Exception e) {
+				logger.error("Error:", e);
+
+				apiOut.setRcode("500");
+				apiOut.setRdesc("Exception");
+			}
+
 			break;
 		case "span":
-			bodyurl = HELPER_WEBVIEW_URL + "span.html";
+			apiOut = DataUtils.setSpanBodys(apiOut);
 			break;
 		case "img":
-			bodyurl = HELPER_WEBVIEW_URL + "img.html";
+			try {
+				apiOut = DataUtils.setImgBodys(context, apiOut);
+			} catch (IOException e) {
+				logger.error("Error:", e);
+			}
 			break;
 		default:
 			break;
 		}
-
-		apiOut.setRcode("200");
-		apiOut.setRdesc("ok");
-		apiOut.setPagename(apiIn.getPagename());
-		apiOut.setBodyurl(bodyurl);
-		apiOut.setReturnpage("helper");
 
 		return apiOut;
 	}
@@ -251,7 +275,7 @@ public class WeatherBusiness extends CommonBusiness {
 		Body bodyDesc = new Body();
 		bodyDesc.setType("span");
 		bodyDesc.setValue("東亞衛星雲圖：");
-		
+
 		Body bodyImg = new Body();
 		bodyImg.setType("img");
 		bodyImg.setImgid(imgid);
