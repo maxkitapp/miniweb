@@ -36,7 +36,7 @@ public class WeatherBusiness extends CommonBusiness {
 	private final String IMG_SRC_FOLDER_NAME = "ivrpic";
 	private final String IMG_THUMB_FOLDER_NAME = "ivrpicthumb";
 	private final String IMG_NAME = "cwbSatellite.jpg";
-	private final int IMG_SIZE = 300;
+	private final int IMG_SIZE = 800;
 	private final String API_GETWEATHER_URL = "http://localhost:8080/ivrdatasource/cwb/getWeather";
 	private final String HELPER_WEBVIEW_URL = "http://maxkit.com.tw:8008/miniweb/helper/";
 
@@ -203,6 +203,7 @@ public class WeatherBusiness extends CommonBusiness {
 	}
 
 	private ApiOut helperdetailHandler(ApiIn apiIn, ApiOut apiOut) {
+		// TODO helper implement
 		Postdata postdata = apiIn.getPostdata().get(0);
 		String postId = postdata.getId(); // item
 		String postValue = postdata.getValue();
@@ -247,9 +248,13 @@ public class WeatherBusiness extends CommonBusiness {
 		String imgbase64 = getSatelliteBase64img();
 		String imgid = "satellite";
 
-		Body body = new Body();
-		body.setType("img");
-		body.setImgid(imgid);
+		Body bodyDesc = new Body();
+		bodyDesc.setType("span");
+		bodyDesc.setValue("東亞衛星雲圖：");
+		
+		Body bodyImg = new Body();
+		bodyImg.setType("img");
+		bodyImg.setImgid(imgid);
 
 		Imgbody imgbody = new Imgbody();
 		imgbody.setImgid(imgid);
@@ -259,7 +264,7 @@ public class WeatherBusiness extends CommonBusiness {
 		apiOut.setRdesc("ok");
 		apiOut.setPagename("satellite");
 		apiOut.setReturnpage("home");
-		apiOut.setBody(Arrays.asList(body));
+		apiOut.setBody(Arrays.asList(bodyDesc, bodyImg));
 		apiOut.setImgbody(Arrays.asList(imgbody));
 		apiOut.setCanforward(true);
 		return apiOut;
