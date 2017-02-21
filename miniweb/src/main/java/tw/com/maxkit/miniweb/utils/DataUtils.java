@@ -451,7 +451,7 @@ public class DataUtils {
 	// appname = crm or weather
 	public static String getPics64img(ServletContext context, String picname) throws IOException {
 		StringBuilder sb_pic = new StringBuilder();
-		sb_pic.append(File.separator).append("WEB-INF").append(File.separator).append("homepic").append(File.separator)
+		sb_pic.append(File.separator).append("WEB-INF").append(File.separator).append("pics").append(File.separator)
 				.append(picname).append(".png");
 		String picPath = context.getRealPath(sb_pic.toString());
 
