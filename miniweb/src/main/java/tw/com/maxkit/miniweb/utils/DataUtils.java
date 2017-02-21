@@ -426,6 +426,7 @@ public class DataUtils {
 		body2.setColor("#D1690E");
 		body2.setSize(24);
 		body2.setBgcolor("#E6E6FA");
+		body2.setValue("span with color and bgcolor");
 
 		Collections.addAll(bodys, body1, body2);
 		apiOut.setBody(bodys);
@@ -433,7 +434,7 @@ public class DataUtils {
 	}
 
 	public static ApiOut setImgBodys(ServletContext context, ApiOut apiOut) throws IOException {
-		String imgdata = DataUtils.getPics64img(context, "crm");
+		String imgdata = DataUtils.getPics64img(context, "crm_home");
 
 		Body bodyImg = new Body();
 		bodyImg.setType("img");

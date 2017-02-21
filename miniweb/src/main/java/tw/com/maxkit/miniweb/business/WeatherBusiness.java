@@ -206,6 +206,7 @@ public class WeatherBusiness extends CommonBusiness {
 		apiOut.setRdesc("ok");
 		apiOut.setPagename("helper");
 		apiOut.setReturnpage("home");
+		apiOut.setAction("helperdetail");
 		apiOut.setBody(bodys);
 		return apiOut;
 	}
