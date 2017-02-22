@@ -134,14 +134,20 @@ public class CrmBusiness extends CommonBusiness {
 		ResponseEntity<Contact[]> response = restTemplate.postForEntity(API_SEARCH_LASTNAME, request, Contact[].class);
 		Contact[] contacts = response.getBody();
 		List<Contact> listContacts = Arrays.asList(contacts);
-		logger.debug("l = {}", listContacts.size());
+		
 		List<Body> bodys = DataUtils.contactsToBody(postValue, listContacts);
 
 		apiOut.setRcode("200");
 		apiOut.setRdesc("ok");
 		apiOut.setPagename("searchbyname");
 		apiOut.setReturnpage("byaccname");
-		apiOut.setAction("getbyid_name");
+		
+		int size = listContacts.size();
+		logger.debug("search by name, result = {}", size);
+		if(size > 0) {
+			apiOut.setAction("getbyid_name");
+		}
+		
 		apiOut.setBody(bodys);
 		return apiOut;
 	}
@@ -223,7 +229,13 @@ public class CrmBusiness extends CommonBusiness {
 		apiOut.setRdesc("ok");
 		apiOut.setPagename("searchbyname");
 		apiOut.setReturnpage("byaccname");
-		apiOut.setAction("getbyid_accname");
+		
+		int size = listContacts.size();
+		logger.debug("search by accname, result = {}", size);
+		if(size > 0) {
+			apiOut.setAction("getbyid_accname");
+		}
+		
 		apiOut.setBody(bodys);
 		return apiOut;
 	}

@@ -478,6 +478,7 @@ public class DataUtils {
 	private static Body generateSpanBody(String columnName, String value) {
 		Body body = new Body();
 		body.setType("span");
+		body.setSize(18);
 		body.setValue(columnName + "：" + value);
 		return body;
 	}
