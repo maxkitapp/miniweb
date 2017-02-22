@@ -40,44 +40,48 @@ package 名稱為 **tw.com.maxkit.miniweb**，package 底下會有幾個主要�
 
 miniweb 專案內有兩個與 KoKoLa Application 介接的服務，分別為
 
-* 天氣相關查詢(weather)
-	* home(span)，首頁。
+* 天氣小程式(weather)
+	* home(span)，首頁，顯示圖片與小程式說明文字。
 		* satellite(image)，衛星雲圖。
 		* taichung(span)，台中天氣，會去跟 Third Party Application 要資料。
 		* kaohsiung(span)，高雄天氣，會去跟 Third Party Application 要資料。
 		* taipei(span)，台北天氣，會去跟 Third Party Application 要資料。
 		* listEntertainment(option)，育樂天氣。
 			* queryEntertainment(webview)，查詢中央氣象局相關育樂天氣 webview。
-* 客戶資料查詢(crm)：
-	* home(span)，首頁。
+		* helper(option)，元件展示。
+			* helperdetail，元件展示。
+* CRM 小程式(crm)：
+	* home(span)，首頁，顯示圖片與小程式說明文字。
 		* byname(text)，根據姓名搜尋的文字輸入框。
 			* searchbyname(option)，姓名搜尋結果，會去跟 Third Party Application 要資料
-				* getbyid_name(span)，人員詳細資訊，會去跟 Third Party Application 要資料
+				* getbyid\_name(span)，人員詳細資訊，會去跟 Third Party Application 要資料
 		* byaccname(text)，根據公司名稱搜尋的文字輸入框。
 			* searchbyaccname(option)，公司名稱搜尋結果，會去跟 Third Party Application 要資料
-				* getbyid_accname(span)，人員詳細資訊，會去跟 Third Party Application 要資料
+				* getbyid\_accname(span)，人員詳細資訊，會去跟 Third Party Application 要資料
 
 # 範例：實作 CRM 應用，根據姓名搜尋客戶：
 
-1. 到 KoKoLa Web Admin 設定，包括 url、名稱。 [todo 圖片]
-2. 開啟 KoKoLa App 確認設定成功。 [todo 圖片]
-3. 開始構想頁面的使用流程，比如說 CRM 應用系統介接。
-	1. (home) 點進去之後會是先顯示首頁。
+1. 到 KoKoLa Web Admin 設定，包括 url、名稱。 
+
+	![](./pics/setup_crm.png)
+
+2. 開始構想頁面的使用流程，比如說 CRM 應用系統介接。
+	1. (home) 點網頁小程式後預設進去之後會是先顯示首頁。**注意，此頁面一定要實作。**。
 	2. (byname) 首頁點了某個 icon 後，進入到下個頁面要求使用者輸入客戶姓名。
 	3. (searchbyname) 輸入完姓名後到下一頁會把搜尋到相關客戶顯示出來讓使用者點選想看詳細資訊的客戶為何。
 	4. (getbyid\_name) 最後使用者點擊了某位客戶後在透過客戶 id 回傳該客戶詳細資訊。
 
 	所以整個頁面轉換的流程如下：
 
-	home -> byname -> searchbyname -> getbyid_name
+	home -> byname -> searchbyname -> getbyid\_name
 	
-4. 接著開始實作 Web Service Project，Web Service 要能處理在 KoKoLa Web Admin 內設定的 URL，比如說你設定 URL 為：
+3. 接著開始實作 Web Service Project，Web Service 要能處理在 KoKoLa Web Admin 內設定的 URL，比如說你設定 URL 為：
 
 		https://192.168.1.88:8443/miniweb/weather/app
 		
 	當 KoKoLa 需要呼叫你實作的 Web Service 時，它會以 HTTP POST 的方式呼叫此 URL。
 	
-5. 再來換實作 Web Service，KoKoLa 發送給 Web Service 的請求會透過 HTTP POST 發送，BODY 為 JSON 格式。Web Service 必須回應 KoKoLa，回應的 BODY 格式為 JSON。下列範例為顯示 CRM home 頁面的請求與回應：
+4. 再來換實作 Web Service，KoKoLa 發送給 Web Service 的請求會透過 HTTP POST 發送，BODY 為 JSON 格式。Web Service 必須回應 KoKoLa，回應的 BODY 格式為 JSON。下列範例為顯示 CRM home 頁面的請求與回應：
 
 	KoKoLa 發送請求給 Web Service：
 
@@ -112,13 +116,13 @@ miniweb 專案內有兩個與 KoKoLa Application 介接的服務，分別為
 		
 		{"rcode":"200","rdesc":"ok","pagename":"home","body":[{"type":"span","value":"Welcome to Weather App"}]}
 		
-6. home 頁面實作
+5. home 頁面實作
 
 	範例圖片：
 	
 	![](./pics/crm_home.png)
 
-	request：
+	Request：
 	
 		POST https://localhost:8443/miniweb/rest/crm/app HTTP/1.1
 		Host: localhost:8443
@@ -140,7 +144,7 @@ miniweb 專案內有兩個與 KoKoLa Application 介接的服務，分別為
 		    "sessionid" : ""
 		}
 	
-	response:
+	Response：
 		
 		HTTP/1.1 200 OK
 		Content-Type: application/json;charset=UTF-8
@@ -176,13 +180,13 @@ miniweb 專案內有兩個與 KoKoLa Application 介接的服務，分別為
 		  ]
 		}
 	
-7. byname 頁面實作
+6. byname 頁面實作
 
 	範例圖片：
 	
 	![](./pics/crm_byname.png)
 
-	request:
+	Request：
 	
 		POST https://192.168.1.88:8443/miniweb/crm/app HTTP/1.1
 		Host: 192.168.1.88:8443
@@ -204,7 +208,7 @@ miniweb 專案內有兩個與 KoKoLa Application 介接的服務，分別為
 		    "sessionid" : ""
 		}
 		
-	response:
+	Response：
 	
 		HTTP/1.1 200 OK
 		Server: Apache-Coyote/1.1
@@ -230,13 +234,13 @@ miniweb 專案內有兩個與 KoKoLa Application 介接的服務，分別為
 		  ]
 		}
 		
-8. searchbyname 頁面實作
+7. searchbyname 頁面實作
 
 	範例圖片：
 	
 	![](./pics/crm_search.png)
 
-	request:
+	Request：
 
 		POST https://192.168.1.88:8443/miniweb/crm/app HTTP/1.1
 		Host: 192.168.1.88:8443
@@ -261,7 +265,7 @@ miniweb 專案內有兩個與 KoKoLa Application 介接的服務，分別為
 		    ]
 		}
 		
-	response:
+	Response：
 	
 		HTTP/1.1 200 OK
 		Server: Apache-Coyote/1.1
@@ -299,13 +303,13 @@ miniweb 專案內有兩個與 KoKoLa Application 介接的服務，分別為
 		  ]
 		}
 
-9. getbyid_name 頁面實作
+8. getbyid\_name 頁面實作
 
 	範例圖片：
 	
 	![](./pics/crm_detail.png)
 
-	request:
+	Request：
 	
 		POST https://192.168.1.88:8443/miniweb/crm/app HTTP/1.1
 		Host: 192.168.1.88:8443
@@ -330,7 +334,7 @@ miniweb 專案內有兩個與 KoKoLa Application 介接的服務，分別為
 		    ]
 		}
 
-	response:
+	Response：
 	
 		HTTP/1.1 200 OK
 		Server: Apache-Coyote/1.1
@@ -373,25 +377,38 @@ miniweb 專案內有兩個與 KoKoLa Application 介接的服務，分別為
 		  ]
 		}
 
-# Session：
+# Session 說明：
 
-	singleton
-	crm only
-		initSession
-			byname
-			byaccname
-		sessionHandler
-			searchbyname
-			searchbyaccname
-	for keep byname/byaccname input use，
-	byname -> searchbyname -> getbyid_name -> searchbyname, input will lose, so need session to keep input data。
+KoKoLa miniweb API 提供 Session 機制，當 response 有回傳 sessionid 時，之後 Client 的每一個 request 都會帶入此 sessionid，這樣可以讓 Third Party Application 知道這是屬於同一系列的操作。
 
-提供 Session 機制，當 response 有傳 sessionid 時，之後的每一個 request 都會帶入此 sessionid，這樣可以讓 third party server 知道這是屬於同一系列的操作。
+# Session 實作範例：
 
 比如說在上面例子，流程為：
 
-* byname
-	* searchbyname
-		* getbyid_name
+* 客戶資料查詢(crm)：
+	* home(span)，首頁。
+		* byname(text)，根據姓名搜尋的文字輸入框。
+			* searchbyname(option)，姓名搜尋結果，會去跟 Third Party Application 要資料
+				* getbyid\_name(span)，人員詳細資訊，會去跟 Third Party Application 要資料
 
-首先在 byname 會顯示輸入框，要求使用者輸入搜尋姓名，接著在進到 searchbyname 頁面時，會把使用者在 byname 輸入框輸入的文字一併帶入，然後顯示在 searchbyname 頁面上。
+首先在點進 byname 頁面時會顯示輸入框，要求使用者輸入搜尋姓名，接著在進到 searchbyname 頁面時，會把使用者在 byname 輸入框輸入的文字一併帶入，然後把搜尋結果顯示在 searchbyname 頁面上。之後使用者點擊某位客戶，在帶到 getbyid\_name 頁面顯示客戶詳細資料。當客戶要從 getbyid\_name 回到 searchbyname 頁面時，會不知道之前帶入的文字為何，此時就要可以用 session 機制來處理。
+
+在進入 byname 頁面時，Third Party Application 產生一組 sessionid 並回應給 Client，接著在 Client 在輸入文字後要進入到 searchbyname 時，Third Party Application 透過 sessionid 把 Client 輸入的文字記錄下來。這樣一來若是 Client 之後有些到 searchbyname 頁面但是沒有帶輸入參數時，Third Party Application 可以透過 sessionid 來檢查是否是先前已經操作過了，若有輸入記錄則可以自動幫 Client 帶入輸入參數。
+
+實作範例如下，在進入 byname 頁面時，進行 initSession，在進入 searchbyname 頁面時，將輸入參數進行 session 判斷與處理後，在繼續接下來的流程：
+
+	switch (pagename) {
+		case "home":
+			apiOut = homeHandler(apiIn, apiOut);
+			break;
+		case "byname":
+			sessionid = sessionManager.initSession(userid);
+			apiOut = bynameHandler(apiIn, apiOut);
+			break;
+		case "searchbyname":
+			apiIn = sessionManager.sessionHandler(apiIn);
+			apiOut = searchbynameHandler(apiIn, apiOut);
+			break;
+		case "getbyid_name":
+			apiOut = getbyidHandler(apiIn, apiOut);
+			break;
