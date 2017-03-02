@@ -83,7 +83,7 @@ miniweb 專案內有兩個與 KoKoLa Application 介接的服務，分別為
 	
 4. 再來換實作 Web Service，KoKoLa 發送給 Web Service 的請求會透過 HTTP POST 發送，BODY 為 JSON 格式。Web Service 必須回應 KoKoLa，回應的 BODY 格式為 JSON。下列範例為顯示 CRM home 頁面的請求與回應：
 
-	KoKoLa 發送請求給 Web Service：
+	KoKoLa 發送請求給 Web Service (本文件的請求與回應的範例都會附上 HTTP header)：
 
 		POST http://192.168.1.88:8080/miniweb/weather/app HTTP/1.1
 		Host: 192.168.1.88:8080
@@ -100,7 +100,7 @@ miniweb 專案內有兩個與 KoKoLa Application 介接的服務，分別為
 		
 		{
 		    "userid": "mayer",
-		    "appuseruuid": "foo-bar",
+		    "exectoken" : "abc123",
 		    "pagename" : "home",
 		    "sessionid" : ""
 		}
@@ -139,12 +139,12 @@ miniweb 專案內有兩個與 KoKoLa Application 介接的服務，分別為
 		
 		{
 		    "userid": "mayer",
-		    "appuseruuid": "foo-bar",
+		    "exectoken" : "abc123",
 		    "pagename" : "home",
 		    "sessionid" : ""
 		}
 	
-	Response：
+	Response，需注意首頁有圖片，圖片需要轉成 Base64 文字編碼才能正常顯示：
 		
 		HTTP/1.1 200 OK
 		Content-Type: application/json;charset=UTF-8
@@ -203,7 +203,7 @@ miniweb 專案內有兩個與 KoKoLa Application 介接的服務，分別為
 		
 		{
 		    "userid": "mayer",
-		    "appuseruuid": "foo-bar",
+		    "exectoken" : "abc123",
 		    "pagename" : "byname",
 		    "sessionid" : ""
 		}
@@ -257,7 +257,7 @@ miniweb 專案內有兩個與 KoKoLa Application 介接的服務，分別為
 		
 		{
 		    "userid": "mayer",
-		    "appuseruuid": "foo-bar",
+		    "exectoken" : "abc123",
 		    "pagename" : "searchbyname",
 		    "sessionid": "b2032c5d-69aa-4365-b080-c1e965416eb5",
 		    "postdata" : [
@@ -326,7 +326,7 @@ miniweb 專案內有兩個與 KoKoLa Application 介接的服務，分別為
 		
 		{
 		    "userid": "mayer",
-		    "appuseruuid": "foo-bar",
+		    "exectoken" : "abc123",
 		    "pagename" : "getbyid_name",
 		    "sessionid" : "",
 		    "postdata" : [
@@ -379,7 +379,7 @@ miniweb 專案內有兩個與 KoKoLa Application 介接的服務，分別為
 
 # Session 說明：
 
-KoKoLa miniweb API 提供 Session 機制，當 response 有回傳 sessionid 時，之後 Client 的每一個 request 都會帶入此 sessionid，這樣可以讓 Third Party Application 知道這是屬於同一系列的操作。
+KoKoLa miniweb API 提供 Session 機制，當 response 有回傳 sessionid 時，之後 Client 的每一個 request 都會帶入此 sessionid，這樣可以讓 Web Server 知道這是屬於同一系列的操作。
 
 # Session 實作範例：
 
@@ -393,7 +393,7 @@ KoKoLa miniweb API 提供 Session 機制，當 response 有回傳 sessionid 時�
 
 首先在點進 byname 頁面時會顯示輸入框，要求使用者輸入搜尋姓名，接著在進到 searchbyname 頁面時，會把使用者在 byname 輸入框輸入的文字一併帶入，然後把搜尋結果顯示在 searchbyname 頁面上。之後使用者點擊某位客戶，在帶到 getbyid\_name 頁面顯示客戶詳細資料。當客戶要從 getbyid\_name 回到 searchbyname 頁面時，會不知道之前帶入的文字為何，此時就要可以用 session 機制來處理。
 
-在進入 byname 頁面時，Third Party Application 產生一組 sessionid 並回應給 Client，接著在 Client 在輸入文字後要進入到 searchbyname 時，Third Party Application 透過 sessionid 把 Client 輸入的文字記錄下來。這樣一來若是 Client 之後有些到 searchbyname 頁面但是沒有帶輸入參數時，Third Party Application 可以透過 sessionid 來檢查是否是先前已經操作過了，若有輸入記錄則可以自動幫 Client 帶入輸入參數。
+在進入 byname 頁面時，Web Service 產生一組 sessionid 並回應給 Client，接著在 Client 在輸入文字後要進入到 searchbyname 時，Web Service 透過 sessionid 把 Client 輸入的文字記錄下來。這樣一來若是 Client 之後有些到 searchbyname 頁面但是沒有帶輸入參數時，Third Party Application 可以透過 sessionid 來檢查是否是先前已經操作過了，若有輸入記錄則可以自動幫 Client 帶入輸入參數。
 
 實作範例如下，在進入 byname 頁面時，進行 initSession，在進入 searchbyname 頁面時，將輸入參數進行 session 判斷與處理後，在繼續接下來的流程：
 
@@ -412,3 +412,45 @@ KoKoLa miniweb API 提供 Session 機制，當 response 有回傳 sessionid 時�
 		case "getbyid_name":
 			apiOut = getbyidHandler(apiIn, apiOut);
 			break;
+			
+# Web Server 請求驗證
+
+在新增系統帳號時，可以設定系統驗證碼，如下：
+
+![](./pics/setup_auth.png)
+
+之後在 KoKoLa Server 發送請求給 Web Service 時，會在 POST body 的 JSON 內帶上參數 exectoken，此參數即為系統驗證碼：
+
+	POST http://192.168.1.88:8080/miniweb/weather/app HTTP/1.1
+	Host: 192.168.1.88:8080
+	Proxy-Connection: keep-alive
+	Content-length: 102
+	Postman-Token: 9c9e5638-f211-4451-f5c3-d907ebdafbbc
+	Cache-Control: no-cache
+	Origin: chrome-extension://fhbjgbiflinjbdggehcddcbncdddomop
+	User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36
+	Content-Type: application/json
+	Accept: */*
+	Accept-Encoding: gzip, deflate
+	Accept-Language: zh-TW,zh;q=0.8,en-US;q=0.6,en;q=0.4
+	
+	{
+	    "userid": "mayer",
+	    "exectoken" : "abc123",
+	    "pagename" : "home",
+	    "sessionid" : ""
+	}
+	
+若是 exectoken 參數與預期不同，則代表傳入的驗證碼錯誤，Web Service 不應該繼續與此請求互動，需回應以下訊息：
+
+	HTTP/1.1 200 OK
+	Server: Apache-Coyote/1.1
+	Content-Type: application/json;charset=UTF-8
+	X-Transfer-Encoding: chunked
+	Date: Tue, 14 Feb 2017 06:52:13 GMT
+	Content-length: 104
+		
+	{
+	  "rcode": "403",
+	  "rdesc": "Forbidden"
+	}

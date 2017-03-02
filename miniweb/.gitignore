@@ -6,3 +6,4 @@
 .DS_Store
 **/*.graffle
 **/pics_bak
+**/*.properties

@@ -193,6 +193,8 @@
 
 ### option - Third party Server Response Sample
 
+需注意，若是需要使用有圖片的 option，則圖片需要轉成 Base64 文字編碼才能正常顯示。
+
 	HTTP/1.1 200 
 	Content-Type: application/json;charset=UTF-8
 	X-Transfer-Encoding: chunked
@@ -290,6 +292,8 @@
 	}
 
 ### checkbox - Third party Server Response Sample
+
+需注意，若是需要使用有圖片的 checkbox，則圖片需要轉成 Base64 文字編碼才能正常顯示。
 
 	HTTP/1.1 200 
 	Content-Type: application/json;charset=UTF-8
@@ -452,6 +456,8 @@
 	}
 
 ### img - Third party Server Response Sample
+
+需注意，圖片需要轉成 Base64 文字編碼才能正常顯示。
 
 	HTTP/1.1 200 
 	Content-Type: application/json;charset=UTF-8
