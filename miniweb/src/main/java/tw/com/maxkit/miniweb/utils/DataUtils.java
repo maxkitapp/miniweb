@@ -4,10 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.ServletContext;
@@ -18,6 +20,7 @@ import tw.com.maxkit.miniweb.bean.ApiOut;
 import tw.com.maxkit.miniweb.bean.Body;
 import tw.com.maxkit.miniweb.bean.Imgbody;
 import tw.com.maxkit.miniweb.bean.Option;
+import tw.com.maxkit.miniweb.bean.checkin.Checkin;
 import tw.com.maxkit.miniweb.bean.crm.Contact;
 import tw.com.maxkit.miniweb.bean.cwb.CwbDataStore;
 import tw.com.maxkit.miniweb.bean.cwb.Location;
@@ -467,6 +470,55 @@ public class DataUtils {
 		return imgBase64;
 	}
 
+	public static List<Body> checkinsToBodys(List<Checkin> listCheckin) {
+		List<Body> listBody = new ArrayList<Body>();
+		
+		int size = listCheckin.size();
+		if(size == 0) {
+			Body body = new Body();
+			body.setType("span");
+			body.setSize(24);
+			body.setValue("您最近沒有簽到紀錄。");
+			listBody.add(body);
+		} else {
+			Body bodyTitle = new Body();
+			bodyTitle.setType("span");
+			bodyTitle.setSize(24);
+			bodyTitle.setValue("您最近的簽到紀錄：");
+			
+			Body bodyHr = new Body();
+			bodyHr.setType("span");
+			bodyHr.setValue("--------");
+			bodyHr.setSize(18);
+			
+			listBody.add(bodyTitle);
+			listBody.add(bodyHr);
+			
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			for(Checkin checkin : listCheckin) {
+				Date dateCheckin = checkin.getCheckindate();
+				String strDateCheckin = sdf.format(dateCheckin);
+				
+				Body bodyCheckin = new Body();
+				bodyCheckin.setType("span");
+				bodyCheckin.setValue("簽到時間：" + strDateCheckin);
+				bodyCheckin.setSize(18);
+				
+				Date dateCheckout = checkin.getCheckoutdate();
+				String strDateCheckout = (dateCheckout == null) ? "您尚未簽退" : sdf.format(dateCheckout);
+				
+				Body bodyCheckout = new Body();
+				bodyCheckout.setType("span");
+				bodyCheckout.setValue("簽退時間：" + strDateCheckout);
+				bodyCheckout.setSize(18);
+				
+				Collections.addAll(listBody, bodyCheckin, bodyCheckout, bodyHr);
+			}
+		}
+				
+		return listBody;
+	}
+	
 	private static Body generateSpanHr() {
 		Body body = new Body();
 		body.setType("span");
