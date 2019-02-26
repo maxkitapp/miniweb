@@ -7,3 +7,7 @@
 **/*.graffle
 **/pics_bak
 **/*.properties
+/target
+*.iml
+.idea
+

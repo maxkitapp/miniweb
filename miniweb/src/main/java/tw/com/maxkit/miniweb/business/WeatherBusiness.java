@@ -1,35 +1,38 @@
 package tw.com.maxkit.miniweb.business;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Calendar;
-import java.util.List;
-
+import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustStrategy;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-
-import net.coobird.thumbnailator.Thumbnails;
-import tw.com.maxkit.miniweb.bean.ApiIn;
-import tw.com.maxkit.miniweb.bean.ApiOut;
-import tw.com.maxkit.miniweb.bean.Body;
-import tw.com.maxkit.miniweb.bean.Imgbody;
-import tw.com.maxkit.miniweb.bean.Postdata;
-import tw.com.maxkit.miniweb.bean.cwb.CwbDataStore;
+import tw.com.maxkit.miniweb.bean.*;
 import tw.com.maxkit.miniweb.common.CommonBusiness;
 import tw.com.maxkit.miniweb.utils.DataUtils;
+
+import javax.net.ssl.SSLContext;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Service
 public class WeatherBusiness extends CommonBusiness {
@@ -37,7 +40,6 @@ public class WeatherBusiness extends CommonBusiness {
 	private final String IMG_THUMB_FOLDER_NAME = "ivrpicthumb";
 	private final String IMG_NAME = "cwbSatellite.jpg";
 	private final int IMG_SIZE = 800;
-	private final String API_GETWEATHER_URL = "http://localhost:8080/ivrdatasource/cwb/getWeather";
 
 	public ApiOut requestHandler(ApiIn apiIn) {
 		String pagename = apiIn.getPagename();
@@ -144,7 +146,7 @@ public class WeatherBusiness extends CommonBusiness {
 
 			Body bodyDesc = new Body();
 			bodyDesc.setType("span");
-			bodyDesc.setValue("透過天氣小程式，可以查詢各大都市的天氣預報、育樂天氣、與衛星雲圖等天氣資訊。");
+			bodyDesc.setValue("透過天氣小程式，可以查詢天氣資訊。");
 
 			Imgbody imgbody = new Imgbody();
 			imgbody.setImgid("homepic");
@@ -174,21 +176,85 @@ public class WeatherBusiness extends CommonBusiness {
 
 	private ApiOut getWeatherHandler(ApiIn apiIn, ApiOut apiOut, String pagename) {
 		// query cwb raw data
-		RestTemplate restTemplate = new RestTemplate();
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		List<Body> bodys = new ArrayList<>();
+		try {
+//			RestTemplate restTemplate = getRestTemplate();
 
-		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-		map.add("area", pagename);
+//			HttpHeaders headers = new HttpHeaders();
+//			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+//
+//			MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+//			map.add("area", pagename);
+//
+//			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
+//
+//			ResponseEntity<CwbDataStore> response = restTemplate.postForEntity(API_GETWEATHER_URL, request,
+//					CwbDataStore.class);
+//			CwbDataStore cwbDataStore = response.getBody();
 
-		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
+//			bodys = DataUtils.cwbStoreToBody(cwbDataStore, pagename);
 
-		ResponseEntity<CwbDataStore> response = restTemplate.postForEntity(API_GETWEATHER_URL, request,
-				CwbDataStore.class);
-		CwbDataStore cwbDataStore = response.getBody();
+			String API_GETWEATHER_URL = "https://www.cwb.gov.tw/m/f/taiwan/text/66.htm";
 
-		// convert cwb raw data to response format
-		List<Body> bodys = DataUtils.cwbStoreToBody(cwbDataStore, pagename);
+			if( pagename.equals("taichung") ) {
+				API_GETWEATHER_URL = "https://www.cwb.gov.tw/m/f/taiwan/text/66.htm";
+			} else if( pagename.equals("taipei")) {
+				API_GETWEATHER_URL = "https://www.cwb.gov.tw/m/f/taiwan/text/63.htm";
+			} else if( pagename.equals("kaohsiung")) {
+				API_GETWEATHER_URL = "https://www.cwb.gov.tw/m/f/taiwan/text/64.htm";
+			}
+
+			HttpGet request1 = new HttpGet(API_GETWEATHER_URL);
+			HttpResponse response1 = getHttpClient().execute(request1);
+			int code = response1.getStatusLine().getStatusCode();
+
+			String output = "";
+			try (BufferedReader br = new BufferedReader(new InputStreamReader((response1.getEntity().getContent())));) {
+				// Read in all of the post results into a String.
+
+				Boolean keepGoing = true;
+				while (keepGoing) {
+					String currentLine = br.readLine();
+
+					if (currentLine == null) {
+						keepGoing = false;
+					} else {
+						output += currentLine;
+					}
+				}
+
+//				logger.debug("Response-->" + output);
+			} catch (Exception e) {
+				logger.error("Exception", e);
+			}
+
+			Body body0 = new Body();
+			body0.setType("span");
+			body0.setValue("天氣預報");
+			body0.setSize(18);
+			bodys.add(body0);
+
+			if( !output.equals("")) {
+//				String output = "<div class='box-content'><div class='responsive-table'>多雲，溫度逐漸回升，早晚仍涼，請適時調整衣物以免著涼。<BR><BR>昨天（２５日）冷空氣強度仍有東北季風的程度，整天濕涼，臺北站測得高溫19.9度，清晨低溫15.8度；降雨方面，部份地區有局部短暫降雨，但中午過後皆逐漸減緩。<BR><BR>今天(２６日）東北季風減弱，天氣多雲，整體溫度逐漸回升，但早晚仍涼，山區早上有局部短暫雨；白天氣溫15至19度，請適時調整衣物以免著涼。<BR><BR></div></div>";
+
+				String[] B = output.split("<BR>");
+				B[0]=B[0].replace("<div class='box-content'><div class='responsive-table'>", "");
+				B[B.length-1]=B[B.length-1].replace("</div></div>", "");
+
+				for (int i = 0; i < B.length; i++) {
+					if( !B[i].equals("")) {
+						Body bodyDesc = new Body();
+						bodyDesc.setType("span");
+						bodyDesc.setValue(B[i]);
+						bodyDesc.setSize(18);
+						bodys.add(bodyDesc);
+					}
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		apiOut.setRcode("200");
 		apiOut.setRdesc("ok");
@@ -275,7 +341,7 @@ public class WeatherBusiness extends CommonBusiness {
 
 		Body bodyDesc = new Body();
 		bodyDesc.setType("span");
-		bodyDesc.setValue("東亞衛星雲圖：");
+		bodyDesc.setValue("台灣衛星雲圖：");
 
 		Body bodyImg = new Body();
 		bodyImg.setType("img");
@@ -314,11 +380,16 @@ public class WeatherBusiness extends CommonBusiness {
 													// 2017-01-12-02-00
 
 		StringBuilder url = new StringBuilder();
-		url.append("http://www.cwb.gov.tw/V7/observe/satellite/Data/s1p/s1p-").append(dateStr).append(".jpg");
+		url.append("https://www.cwb.gov.tw/Data/satellite/TWI_VIS_TRGB_1375/TWI_VIS_TRGB_1375-").append(dateStr).append(".jpg");
 
-		RestTemplate restTemplate = new RestTemplate();
-		restTemplate.getMessageConverters().add(new ByteArrayHttpMessageConverter());
-		byte[] imageBytes = restTemplate.getForObject(url.toString(), byte[].class);
+		byte[] imageBytes = new byte[0];
+		try {
+			RestTemplate restTemplate = getRestTemplate();
+			restTemplate.getMessageConverters().add(new ByteArrayHttpMessageConverter());
+			imageBytes = restTemplate.getForObject(url.toString(), byte[].class);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		// raw image resize to thumbnail and encode the thumbnail to base64
 		// string
@@ -333,6 +404,45 @@ public class WeatherBusiness extends CommonBusiness {
 		}
 
 		return imgBase64;
+	}
+
+	public CloseableHttpClient getHttpClient() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+		TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
+
+		SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
+				.loadTrustMaterial(null, acceptingTrustStrategy)
+				.build();
+
+		SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
+
+		CloseableHttpClient httpClient = HttpClients.custom()
+				.setSSLSocketFactory(csf)
+				.build();
+		return httpClient;
+	}
+
+
+	public RestTemplate getRestTemplate() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+		TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
+
+		SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
+				.loadTrustMaterial(null, acceptingTrustStrategy)
+				.build();
+
+		SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
+
+		CloseableHttpClient httpClient = HttpClients.custom()
+				.setSSLSocketFactory(csf)
+				.build();
+
+		HttpComponentsClientHttpRequestFactory requestFactory =
+				new HttpComponentsClientHttpRequestFactory();
+
+		requestFactory.setHttpClient(httpClient);
+		RestTemplate restTemplate = new RestTemplate(requestFactory);
+//		restTemplate.getMessageConverters().add(new WxMappingJackson2HttpMessageConverter());
+//		restTemplate.getMessageConverters().add(new MyGsonHttpMessageConverter());
+		return restTemplate;
 	}
 
 	private String[] forceCreateFolder() {
@@ -365,4 +475,24 @@ public class WeatherBusiness extends CommonBusiness {
 		}
 		return paths;
 	}
+
+//	public class WxMappingJackson2HttpMessageConverter extends MappingJackson2HttpMessageConverter {
+//		public WxMappingJackson2HttpMessageConverter() {
+//			List<MediaType> mediaTypes = new ArrayList<>();
+//			mediaTypes.add(MediaType.TEXT_PLAIN);
+//			mediaTypes.add(MediaType.TEXT_HTML);  //加入text/html类型的支持
+//			setSupportedMediaTypes(mediaTypes);// tag6
+//		}
+//	}
+//
+//	public class MyGsonHttpMessageConverter extends GsonHttpMessageConverter {
+//		public MyGsonHttpMessageConverter() {
+//			List<MediaType> types = Arrays.asList(
+//					new MediaType("text", "html", DEFAULT_CHARSET),
+//					new MediaType("application", "json", DEFAULT_CHARSET),
+//					new MediaType("application", "*+json", DEFAULT_CHARSET)
+//			);
+//			super.setSupportedMediaTypes(types);
+//		}
+//	}
 }

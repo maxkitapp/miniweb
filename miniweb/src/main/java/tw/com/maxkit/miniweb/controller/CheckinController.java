@@ -18,7 +18,7 @@ import tw.com.maxkit.miniweb.common.CommonController;
 public class CheckinController extends CommonController {
 	@Autowired
 	private CheckinBusiness checkinBiz;
-	@Value("${auth.checkin}") 
+	@Value("${auth.checkin}")
 	private String auth;
 	
 	@ResponseBody

@@ -18,7 +18,7 @@ import tw.com.maxkit.miniweb.common.CommonController;
 public class WeatherController extends CommonController {
 	@Autowired
 	private WeatherBusiness weatherBiz;
-	@Value("${auth.weather}") 
+	@Value("${auth.weather}")
 	private String auth;
 
 	@ResponseBody
