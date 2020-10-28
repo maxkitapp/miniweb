@@ -59,12 +59,12 @@ public class WeatherBusiness extends CommonBusiness {
 		case "taipei":
 			apiOut = getWeatherHandler(apiIn, apiOut, pagename);
 			break;
-		case "listEntertainment":
-			apiOut = listEntertainmentHandler(apiIn, apiOut);
-			break;
-		case "queryEntertainment":
-			apiOut = queryEntertainmentHandler(apiIn, apiOut);
-			break;
+//		case "listEntertainment":
+//			apiOut = listEntertainmentHandler(apiIn, apiOut);
+//			break;
+//		case "queryEntertainment":
+//			apiOut = queryEntertainmentHandler(apiIn, apiOut);
+//			break;
 		case "helper":
 			apiOut = helperHandler(apiIn, apiOut);
 			break;
@@ -98,43 +98,43 @@ public class WeatherBusiness extends CommonBusiness {
 		return apiOut;
 	}
 
-	private ApiOut queryEntertainmentHandler(ApiIn apiIn, ApiOut apiOut) {
-		Postdata postdata = apiIn.getPostdata().get(0);
-		String postId = postdata.getId(); // eid
-		String postValue = postdata.getValue();
-
-		logger.debug("getpost, postId = {}, postValue = {}", postId, postValue);
-
-		String bodyurl = "";
-
-		switch (postValue) {
-		case "fishing":
-			bodyurl = "http://www.cwb.gov.tw/m/f/entertainment/B011.php";
-			break;
-		case "biking":
-			bodyurl = "http://www.cwb.gov.tw/m/f/entertainment/C047.php";
-			break;
-		case "stargazing":
-			bodyurl = "http://www.cwb.gov.tw/m/f/entertainment/F010.php";
-			break;
-		case "hiking":
-			bodyurl = "http://www.cwb.gov.tw/m/f/entertainment/D115.php";
-			break;
-		case "traveling":
-			bodyurl = "http://www.cwb.gov.tw/m/f/entertainment/E029.php";
-			break;
-		default:
-			break;
-		}
-
-		apiOut.setRcode("200");
-		apiOut.setRdesc("ok");
-		apiOut.setPagename(apiIn.getPagename());
-		apiOut.setBodyurl(bodyurl);
-		apiOut.setReturnpage("listEntertainment");
-
-		return apiOut;
-	}
+//	private ApiOut queryEntertainmentHandler(ApiIn apiIn, ApiOut apiOut) {
+//		Postdata postdata = apiIn.getPostdata().get(0);
+//		String postId = postdata.getId(); // eid
+//		String postValue = postdata.getValue();
+//
+//		logger.debug("getpost, postId = {}, postValue = {}", postId, postValue);
+//
+//		String bodyurl = "";
+//
+//		switch (postValue) {
+//		case "fishing":
+//			bodyurl = "http://www.cwb.gov.tw/m/f/entertainment/B011.php";
+//			break;
+//		case "biking":
+//			bodyurl = "http://www.cwb.gov.tw/m/f/entertainment/C047.php";
+//			break;
+//		case "stargazing":
+//			bodyurl = "http://www.cwb.gov.tw/m/f/entertainment/F010.php";
+//			break;
+//		case "hiking":
+//			bodyurl = "http://www.cwb.gov.tw/m/f/entertainment/D115.php";
+//			break;
+//		case "traveling":
+//			bodyurl = "http://www.cwb.gov.tw/m/f/entertainment/E029.php";
+//			break;
+//		default:
+//			break;
+//		}
+//
+//		apiOut.setRcode("200");
+//		apiOut.setRdesc("ok");
+//		apiOut.setPagename(apiIn.getPagename());
+//		apiOut.setBodyurl(bodyurl);
+//		apiOut.setReturnpage("listEntertainment");
+//
+//		return apiOut;
+//	}
 
 	private ApiOut homeHandler(ApiIn apiIn, ApiOut apiOut) {
 		String imgdata = "";
@@ -194,21 +194,22 @@ public class WeatherBusiness extends CommonBusiness {
 
 //			bodys = DataUtils.cwbStoreToBody(cwbDataStore, pagename);
 
-			String API_GETWEATHER_URL = "https://www.cwb.gov.tw/m/f/taiwan/text/66.htm";
+			String API_GETWEATHER_URL = "https://www.cwb.gov.tw/Data/js/fcst/W50_Data.js";
 
+			String ccode = "66";
 			if( pagename.equals("taichung") ) {
-				API_GETWEATHER_URL = "https://www.cwb.gov.tw/m/f/taiwan/text/66.htm";
+				ccode="66";
 			} else if( pagename.equals("taipei")) {
-				API_GETWEATHER_URL = "https://www.cwb.gov.tw/m/f/taiwan/text/63.htm";
+				ccode="63";
 			} else if( pagename.equals("kaohsiung")) {
-				API_GETWEATHER_URL = "https://www.cwb.gov.tw/m/f/taiwan/text/64.htm";
+				ccode="64";
 			}
 
 			HttpGet request1 = new HttpGet(API_GETWEATHER_URL);
 			HttpResponse response1 = getHttpClient().execute(request1);
 			int code = response1.getStatusLine().getStatusCode();
 
-			String output = "";
+			String output1 = "";
 			try (BufferedReader br = new BufferedReader(new InputStreamReader((response1.getEntity().getContent())));) {
 				// Read in all of the post results into a String.
 
@@ -219,11 +220,11 @@ public class WeatherBusiness extends CommonBusiness {
 					if (currentLine == null) {
 						keepGoing = false;
 					} else {
-						output += currentLine;
+						output1 += currentLine;
 					}
 				}
 
-//				logger.debug("Response-->" + output);
+//				logger.debug("Response-->" + output1);
 			} catch (Exception e) {
 				logger.error("Exception", e);
 			}
@@ -234,10 +235,14 @@ public class WeatherBusiness extends CommonBusiness {
 			body0.setSize(18);
 			bodys.add(body0);
 
+			String ccodedesc = "'"+ccode+"':{";
+
+			String output = output1.substring(output1.indexOf(ccodedesc)+7 , output1.indexOf("}", output1.indexOf(ccodedesc)) );
+
 			if( !output.equals("")) {
 //				String output = "<div class='box-content'><div class='responsive-table'>多雲，溫度逐漸回升，早晚仍涼，請適時調整衣物以免著涼。<BR><BR>昨天（２５日）冷空氣強度仍有東北季風的程度，整天濕涼，臺北站測得高溫19.9度，清晨低溫15.8度；降雨方面，部份地區有局部短暫降雨，但中午過後皆逐漸減緩。<BR><BR>今天(２６日）東北季風減弱，天氣多雲，整體溫度逐漸回升，但早晚仍涼，山區早上有局部短暫雨；白天氣溫15至19度，請適時調整衣物以免著涼。<BR><BR></div></div>";
 
-				String[] B = output.split("<BR>");
+				String[] B = output.split("\\r?\\n");
 				B[0]=B[0].replace("<div class='box-content'><div class='responsive-table'>", "");
 				B[B.length-1]=B[B.length-1].replace("</div></div>", "");
 
