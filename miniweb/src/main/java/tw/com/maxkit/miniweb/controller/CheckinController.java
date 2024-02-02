@@ -20,14 +20,16 @@ public class CheckinController extends CommonController {
 	private CheckinBusiness checkinBiz;
 	@Value("${auth.checkin}")
 	private String auth;
-	
+	@Value("${auth.checkin.key}")
+	private String checkinkey;
+
 	@ResponseBody
 	@PostMapping(path = "/app", consumes = "application/json")
 	public ApiOut app(@RequestBody ApiIn apiIn) {
 		ApiOut apiOut = null;
-		
+		apiIn.setCheckinkey(checkinkey);
 		if(isValid(apiIn, auth)) {
-			apiOut = checkinBiz.requestHandler(apiIn);	
+			apiOut = checkinBiz.requestHandler(apiIn);
 		} else {
 			apiOut = new ApiOut();
 			apiOut.setRcode("403");

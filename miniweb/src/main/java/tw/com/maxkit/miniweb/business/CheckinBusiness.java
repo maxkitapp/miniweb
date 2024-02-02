@@ -3,6 +3,7 @@ package tw.com.maxkit.miniweb.business;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -22,10 +23,10 @@ import tw.com.maxkit.miniweb.utils.DataUtils;
 
 @Service
 public class CheckinBusiness extends CommonBusiness {
-	private final String API_CHECKIN = "http://localhost:8080/ivrdatasource/checkin/checkinNow";
-	private final String API_CHECKOUT = "http://localhost:8080/ivrdatasource/checkin/checkoutNow";
-	private final String API_HISTORY = "http://localhost:8080/ivrdatasource/checkin/history";
-	
+	private final String API_CHECKIN = "http://localhost:8088/ivrdatasource/checkin/checkinNow";
+	private final String API_CHECKOUT = "http://localhost:8088/ivrdatasource/checkin/checkoutNow";
+	private final String API_HISTORY = "http://localhost:8088/ivrdatasource/checkin/history";
+
 	public ApiOut requestHandler(ApiIn apiIn) {
 		String pagename = apiIn.getPagename();
 
@@ -82,6 +83,7 @@ public class CheckinBusiness extends CommonBusiness {
 	
 	private ApiOut checkinHandler(ApiIn apiIn, ApiOut apiOut) {
 		String userid = apiIn.getUserid();
+		String checkinkey = apiIn.getCheckinkey();
 		
 		// query crm raw data
 		RestTemplate restTemplate = new RestTemplate();
@@ -90,6 +92,8 @@ public class CheckinBusiness extends CommonBusiness {
 
 		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
 		map.add("userid", userid);
+		map.add("checkinkey", checkinkey);
+//		logger.debug("checkinHandler userid={}, checkinkey={}", userid, checkinkey);
 
 		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
 		
@@ -122,7 +126,8 @@ public class CheckinBusiness extends CommonBusiness {
 	
 	private ApiOut checkoutHandler(ApiIn apiIn, ApiOut apiOut) {
 		String userid = apiIn.getUserid();
-		
+		String checkinkey = apiIn.getCheckinkey();
+
 		// query crm raw data
 		RestTemplate restTemplate = new RestTemplate();
 		HttpHeaders headers = new HttpHeaders();
@@ -130,6 +135,7 @@ public class CheckinBusiness extends CommonBusiness {
 
 		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
 		map.add("userid", userid);
+		map.add("checkinkey", checkinkey);
 
 		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
 		
@@ -166,7 +172,8 @@ public class CheckinBusiness extends CommonBusiness {
 	
 	private ApiOut historyHandler(ApiIn apiIn, ApiOut apiOut) {
 		String userid = apiIn.getUserid();
-		
+		String checkinkey = apiIn.getCheckinkey();
+
 		// query crm raw data
 		RestTemplate restTemplate = new RestTemplate();
 		HttpHeaders headers = new HttpHeaders();
@@ -174,6 +181,7 @@ public class CheckinBusiness extends CommonBusiness {
 
 		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
 		map.add("userid", userid);
+		map.add("checkinkey", checkinkey);
 
 		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
 		

@@ -24,9 +24,9 @@ import tw.com.maxkit.miniweb.utils.session.SessionManager;
 
 @Service
 public class CrmBusiness extends CommonBusiness {
-	private final String API_SEARCH_LASTNAME = "http://localhost:8080/ivrdatasource/crm/searchbylastname";
-	private final String API_SEARCH_ACCNAME = "http://localhost:8080/ivrdatasource/crm/searchbyaccname";
-	private final String API_GETBYID = "http://localhost:8080/ivrdatasource/crm/getbyid";
+	private final String API_SEARCH_LASTNAME = "http://localhost:8088/ivrdatasource/crm/searchbylastname";
+	private final String API_SEARCH_ACCNAME = "http://localhost:8088/ivrdatasource/crm/searchbyaccname";
+	private final String API_GETBYID = "http://localhost:8088/ivrdatasource/crm/getbyid";
 
 	public ApiOut requestHandler(ApiIn apiIn) {
 		String pagename = apiIn.getPagename();

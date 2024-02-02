@@ -23,13 +23,19 @@ import tw.com.maxkit.miniweb.bean.*;
 import tw.com.maxkit.miniweb.common.CommonBusiness;
 import tw.com.maxkit.miniweb.utils.DataUtils;
 
-import javax.net.ssl.SSLContext;
+import javax.imageio.ImageIO;
+import javax.net.ssl.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -38,7 +44,7 @@ import java.util.*;
 public class WeatherBusiness extends CommonBusiness {
 	private final String IMG_SRC_FOLDER_NAME = "ivrpic";
 	private final String IMG_THUMB_FOLDER_NAME = "ivrpicthumb";
-	private final String IMG_NAME = "cwbSatellite.jpg";
+	private final String IMG_NAME = "cwaSatellite.jpg";
 	private final int IMG_SIZE = 800;
 
 	public ApiOut requestHandler(ApiIn apiIn) {
@@ -109,19 +115,19 @@ public class WeatherBusiness extends CommonBusiness {
 //
 //		switch (postValue) {
 //		case "fishing":
-//			bodyurl = "http://www.cwb.gov.tw/m/f/entertainment/B011.php";
+//			bodyurl = "http://www.cwa.gov.tw/m/f/entertainment/B011.php";
 //			break;
 //		case "biking":
-//			bodyurl = "http://www.cwb.gov.tw/m/f/entertainment/C047.php";
+//			bodyurl = "http://www.cwa.gov.tw/m/f/entertainment/C047.php";
 //			break;
 //		case "stargazing":
-//			bodyurl = "http://www.cwb.gov.tw/m/f/entertainment/F010.php";
+//			bodyurl = "http://www.cwa.gov.tw/m/f/entertainment/F010.php";
 //			break;
 //		case "hiking":
-//			bodyurl = "http://www.cwb.gov.tw/m/f/entertainment/D115.php";
+//			bodyurl = "http://www.cwa.gov.tw/m/f/entertainment/D115.php";
 //			break;
 //		case "traveling":
-//			bodyurl = "http://www.cwb.gov.tw/m/f/entertainment/E029.php";
+//			bodyurl = "http://www.cwa.gov.tw/m/f/entertainment/E029.php";
 //			break;
 //		default:
 //			break;
@@ -175,7 +181,7 @@ public class WeatherBusiness extends CommonBusiness {
 	}
 
 	private ApiOut getWeatherHandler(ApiIn apiIn, ApiOut apiOut, String pagename) {
-		// query cwb raw data
+		// query cwa raw data
 		List<Body> bodys = new ArrayList<>();
 		try {
 //			RestTemplate restTemplate = getRestTemplate();
@@ -190,11 +196,11 @@ public class WeatherBusiness extends CommonBusiness {
 //
 //			ResponseEntity<CwbDataStore> response = restTemplate.postForEntity(API_GETWEATHER_URL, request,
 //					CwbDataStore.class);
-//			CwbDataStore cwbDataStore = response.getBody();
+//			CwbDataStore cwaDataStore = response.getBody();
 
-//			bodys = DataUtils.cwbStoreToBody(cwbDataStore, pagename);
+//			bodys = DataUtils.cwaStoreToBody(cwaDataStore, pagename);
 
-			String API_GETWEATHER_URL = "https://www.cwb.gov.tw/Data/js/fcst/W50_Data.js";
+			String API_GETWEATHER_URL = "https://www.cwa.gov.tw/Data/js/fcst/W50_Data.js";
 
 			String ccode = "66";
 			if( pagename.equals("taichung") ) {
@@ -371,9 +377,9 @@ public class WeatherBusiness extends CommonBusiness {
 		String[] paths = forceCreateFolder();
 
 		String picSrcFilePath = paths[0]; // ex:
-											// /Users/mayer/Documents/workspace46/.metadata/.plugins/org.eclipse.wst.server.core/tmp0/wtpwebapps/miniweb/WEB-INF/ivrpic/cwbSatellite.jpg
+											// /Users/mayer/Documents/workspace46/.metadata/.plugins/org.eclipse.wst.server.core/tmp0/wtpwebapps/miniweb/WEB-INF/ivrpic/cwaSatellite.jpg
 		String picThumbFilePath = paths[1]; // ex:
-											// /Users/mayer/Documents/workspace46/.metadata/.plugins/org.eclipse.wst.server.core/tmp0/wtpwebapps/miniweb/WEB-INF/ivrpicthumb/cwbSatellite.jpg
+											// /Users/mayer/Documents/workspace46/.metadata/.plugins/org.eclipse.wst.server.core/tmp0/wtpwebapps/miniweb/WEB-INF/ivrpicthumb/cwaSatellite.jpg
 
 		// query raw satellite image
 		Calendar cal = Calendar.getInstance();
@@ -385,22 +391,53 @@ public class WeatherBusiness extends CommonBusiness {
 													// 2017-01-12-02-00
 
 		StringBuilder url = new StringBuilder();
-		url.append("https://www.cwb.gov.tw/Data/satellite/TWI_VIS_TRGB_1375/TWI_VIS_TRGB_1375-").append(dateStr).append(".jpg");
+		url.append("https://www.cwa.gov.tw/Data/satellite/TWI_IR1_MB_800/TWI_IR1_MB_800-").append(dateStr).append(".jpg");
 
+		logger.debug("get satellite image url = {}", url);
 		byte[] imageBytes = new byte[0];
-		try {
-			RestTemplate restTemplate = getRestTemplate();
-			restTemplate.getMessageConverters().add(new ByteArrayHttpMessageConverter());
-			imageBytes = restTemplate.getForObject(url.toString(), byte[].class);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+//		try {
+//			logger.debug("get satellite RestTemplate");
+//			RestTemplate restTemplate = getRestTemplate();
+//			restTemplate.getMessageConverters().add(new ByteArrayHttpMessageConverter());
+//			imageBytes = restTemplate.getForObject(url.toString(), byte[].class);
+//			logger.debug("get satellite RestTemplate length={}", imageBytes.length);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 
-		// raw image resize to thumbnail and encode the thumbnail to base64
-		// string
+//		try {
+//			logger.debug("get satellite BufferedImage");
+//			HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier(){
+//				public boolean verify(String arg0, SSLSession arg1) {
+//					return true;
+//				}});
+//
+//			BufferedImage image = ImageIO.read(new URL(url.toString()));
+////			int height = image.getHeight();
+////			int width = image.getWidth();
+//			imageBytes = toByteArray(image, "jpg");
+//			logger.debug("get satellite BufferedImage length={}", imageBytes.length);
+//		} catch (IOException e) {}
+//		// raw image resize to thumbnail and encode the thumbnail to base64
+//		// string
+//		String imgBase64 = "";
+//		if( imageBytes.length>0 ) {
+//			try {
+//				Files.write(Paths.get(picSrcFilePath), imageBytes);
+//				Thumbnails.of(picSrcFilePath).size(IMG_SIZE, IMG_SIZE).toFile(picThumbFilePath);
+//				byte[] thumb = Files.readAllBytes(Paths.get(picThumbFilePath));
+//				imgBase64 = Base64.getEncoder().encodeToString(thumb);
+//			} catch (IOException e) {
+//				logger.error("Exception:", e);
+//			}
+//		}
+		try {
+			logger.debug("get satellite BufferedImage");
+			downloadFileFromURL(url.toString(), picSrcFilePath );
+		} catch (IOException e) {}
+
 		String imgBase64 = "";
 		try {
-			Files.write(Paths.get(picSrcFilePath), imageBytes);
 			Thumbnails.of(picSrcFilePath).size(IMG_SIZE, IMG_SIZE).toFile(picThumbFilePath);
 			byte[] thumb = Files.readAllBytes(Paths.get(picThumbFilePath));
 			imgBase64 = Base64.getEncoder().encodeToString(thumb);
@@ -409,6 +446,75 @@ public class WeatherBusiness extends CommonBusiness {
 		}
 
 		return imgBase64;
+	}
+	private void downloadFileFromURL(String search, String path) throws IOException {
+		// This will get input data from the server
+		InputStream inputStream = null;
+		// This will read the data from the server;
+		OutputStream outputStream = null;
+		try {
+			// This will open a socket from client to server
+			URL url = new URL(search);
+
+			// This user agent is for if the server wants real humans to visit
+			String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36";
+
+			// This socket type will allow to set user_agent
+			URLConnection con = url.openConnection();
+
+			// Setting the user agent
+			con.setRequestProperty("User-Agent", USER_AGENT);
+
+			//Getting content Length
+			int contentLength = con.getContentLength();
+			logger.debug("File contentLength = " + contentLength + " bytes");
+
+			// Requesting input data from server
+			inputStream = con.getInputStream();
+
+//            logger.debug("FileOutputStream path={}", path);
+			// Open local file writer
+			outputStream = new FileOutputStream(path);
+
+			// Limiting byte written to file per loop
+			byte[] buffer = new byte[10000];
+
+			// Increments file size
+			int length;
+			int downloaded = 0;
+//            logger.debug("downloaded={}", downloaded);
+
+			// Looping until server finishes
+			while ((length = inputStream.read(buffer)) != -1)
+			{
+				// Writing data
+				outputStream.write(buffer, 0, length);
+				downloaded+=length;
+//                logger.debug("Downlad Status: " + (downloaded * 100) / (contentLength * 1.0) + "%");
+			}
+		} catch (Exception ex) {
+			//Logger.getLogger(WebCrawler.class.getName()).log(Level.SEVERE, null, ex);
+			ex.printStackTrace();
+		} finally {
+			if( inputStream!=null ) {
+				inputStream.close();
+			}
+			if( outputStream!=null) {
+				outputStream.close();
+			}
+		}
+
+	}
+
+	private static byte[] toByteArray(BufferedImage bi, String format)
+			throws IOException {
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ImageIO.write(bi, format, baos);
+		baos.flush();
+		byte[] bytes = baos.toByteArray();
+		return bytes;
+
 	}
 
 	public CloseableHttpClient getHttpClient() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
@@ -500,4 +606,5 @@ public class WeatherBusiness extends CommonBusiness {
 //			super.setSupportedMediaTypes(types);
 //		}
 //	}
+
 }
