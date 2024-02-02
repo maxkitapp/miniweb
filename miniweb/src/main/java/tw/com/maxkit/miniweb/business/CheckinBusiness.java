@@ -23,9 +23,9 @@ import tw.com.maxkit.miniweb.utils.DataUtils;
 
 @Service
 public class CheckinBusiness extends CommonBusiness {
-	private final String API_CHECKIN = "http://localhost:8088/ivrdatasource/checkin/checkinNow";
-	private final String API_CHECKOUT = "http://localhost:8088/ivrdatasource/checkin/checkoutNow";
-	private final String API_HISTORY = "http://localhost:8088/ivrdatasource/checkin/history";
+	private final String API_CHECKIN = "http://localhost:8088/ivrdatasource/rest/checkin/checkinNow";
+	private final String API_CHECKOUT = "http://localhost:8088/ivrdatasource/rest/checkin/checkoutNow";
+	private final String API_HISTORY = "http://localhost:8088/ivrdatasource/rest/checkin/history";
 
 	public ApiOut requestHandler(ApiIn apiIn) {
 		String pagename = apiIn.getPagename();
